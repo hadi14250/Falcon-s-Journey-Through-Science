@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* UAE Flag & Landscape Colors */
+  --color-uae-red: #CE1126;
+  --color-uae-green: #009639;
+  --color-sand-beige: #E8D5B7;
+  --color-sand-warm: #D4A574;
+  --color-palm-green: #2D5016;
+  --color-desert-night: #1A1A2E;
+  --color-starfield-navy: #0F0F23;
+  --color-gold: #D4AF37;
+  --color-gold-light: #E8C547;
+  --color-gold-dark: #B8962E;
+
+  /* === Lesson UI palette (Duolingo structure, UAE colors) === */
+  /* Primary action — UAE gold (reward / CTA across the whole app) */
+  --color-duo-green: #D4AF37;
+  --color-duo-green-dark: #A8821D;
+  --color-duo-green-light: #E8C547;
+
+  /* "Correct" semantic feedback — UAE flag green (still reads as right-answer) */
+  --color-correct: #009639;
+  --color-correct-dark: #00702A;
+  --color-correct-bg: #DFF5E6;
+
+  /* Wrong / hearts — UAE red */
+  --color-duo-red: #E51A33;
+  --color-duo-red-dark: #B40D20;
+  --color-duo-red-light: #FF6B7E;
+
+  /* Neutral lesson canvas */
+  --color-lesson-bg: #FFF8E6;       /* warm cream page background */
+  --color-tile-bg: #FFFFFF;         /* white tile face */
+  --color-tile-stroke: #E5D9B8;     /* warm beige tile border */
+  --color-tile-shadow: #C9B58A;     /* darker warm shadow under tile (3D feel) */
+  --color-text-primary: #1F2937;    /* near-black for body */
+  --color-text-muted: #6B7280;      /* secondary text */
+
+  /* Hearts */
+  --color-heart: #E51A33;
+  --color-heart-empty: #E5E7EB;
+
+  /* Semantic */
+  --color-background: #E8D5B7;
+  --color-foreground: #1A1A2E;
+  --color-success: #009639;
+  --color-error: #CE1126;
+
+  /* Fonts */
+  --font-heading: var(--font-reem-kufi);
+  --font-body: var(--font-cairo);
+}
+
+/* Sadu pattern keyframe for subtle drift */
+@keyframes sadu-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 60px 60px; }
+}
+
+/* Reduced motion — honors both OS preference and in-app setting */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.reduce-motion,
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation: none !important;
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition: none !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Kill SVG SMIL animations */
+.reduce-motion svg animate,
+.reduce-motion svg animateTransform,
+.reduce-motion svg animateMotion {
+  display: none !important;
+}
+
+/* Focus ring - gold */
+*:focus-visible {
+  outline: 2px solid #D4AF37;
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E8D5B7;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4A574;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Hide scrollbar entirely on opt-in elements (e.g. souq companion rail). */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+
+
+body {
+  font-family: var(--font-body), sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading), sans-serif;
+}
+
+/* RTL support for Arabic text — scale up to match English visual size */
+[dir="rtl"] {
+  font-feature-settings: "liga" 1;
+  font-size: 1.15em;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   DUOLINGO-STYLE LESSON UI PRIMITIVES
+   - .lesson-tile: white card with thick bottom-color border (3D)
+   - .lesson-btn-*: pressable buttons with bottom shadow that compresses on tap
+   ============================================================ */
+
+/* Base 3D tile — used for option buttons, image tiles, learn-card surfaces */
+.lesson-tile {
+  position: relative;
+  background: var(--color-tile-bg);
+  border: 2px solid var(--color-tile-stroke);
+  border-bottom-width: 4px;
+  border-radius: 1rem;
+  transition: transform 0.08s ease-out, border-bottom-width 0.08s ease-out;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.lesson-tile:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #FFFCEF;
+}
+.lesson-tile:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(2px);
+  border-bottom-width: 2px;
+}
+.lesson-tile.is-selected {
+  border-color: #5AAFE6;
+  background: #DDF4FF;
+  border-bottom-color: #3F8AB8;
+}
+.lesson-tile.is-correct {
+  border-color: var(--color-correct-dark);
+  background: var(--color-correct-bg);
+  border-bottom-color: var(--color-correct-dark);
+  color: var(--color-correct-dark);
+}
+.lesson-tile.is-wrong {
+  border-color: var(--color-duo-red-dark);
+  background: #FFE4E6;
+  border-bottom-color: var(--color-duo-red-dark);
+  color: var(--color-duo-red-dark);
+}
+.lesson-tile.is-faded {
+  opacity: 0.45;
+}
+
+/* Primary button — Duolingo's signature pressable green */
+.lesson-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.95rem 1.5rem;
+  border: none;
+  border-radius: 1rem;
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out, filter 0.15s;
+}
+.lesson-btn:disabled,
+.lesson-btn[aria-disabled="true"] {
+  cursor: not-allowed;
+  filter: grayscale(0.6);
+  opacity: 0.5;
+}
+.lesson-btn:active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(3px);
+}
+
+.lesson-btn-primary {
+  background: var(--color-duo-green);
+  color: #1A1A2E;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    0 4px 0 var(--color-duo-green-dark);
+}
+.lesson-btn-primary:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: var(--color-duo-green-light);
+}
+.lesson-btn-primary:active:not(:disabled):not([aria-disabled="true"]) {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 1px 0 var(--color-duo-green-dark);
+}
+
+.lesson-btn-danger {
+  background: var(--color-duo-red);
+  color: #FFFFFF;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.3),
+    0 4px 0 var(--color-duo-red-dark);
+}
+.lesson-btn-danger:active:not(:disabled):not([aria-disabled="true"]) {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 1px 0 var(--color-duo-red-dark);
+}
+
+.lesson-btn-neutral {
+  background: var(--color-tile-bg);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-tile-stroke);
+  box-shadow: 0 4px 0 var(--color-tile-shadow);
+}
+.lesson-btn-neutral:hover:not(:disabled):not([aria-disabled="true"]) {
+  background: #FFFCEF;
+}
+.lesson-btn-neutral:active:not(:disabled):not([aria-disabled="true"]) {
+  box-shadow: 0 1px 0 var(--color-tile-shadow);
+}
+
+/* Big-confident question typography */
+.lesson-question {
+  font-family: var(--font-heading), sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.4rem, 4vw, 1.875rem); /* 22-30px */
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+}
+
+/* Big illustration container */
+.lesson-illus {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* === Level intro companion idle animations.
+   Universal — apply to whatever character image renders inside the
+   level-intro companion slot. Keep them tiny so they read as
+   "alive but calm" rather than "wiggling." Both respect
+   prefers-reduced-motion via the rule below. */
+@keyframes hurr-breathe {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50%      { transform: scale(1.025) rotate(0deg); }
+}
+@keyframes hurr-tilt {
+  /* 90% sit still, then a small head tilt for ~10% of the cycle */
+  0%, 88%, 100% { transform: rotate(0deg); }
+  92%           { transform: rotate(-2.5deg); }
+  96%           { transform: rotate(1.5deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-\[hurr-breathe_4s_ease-in-out_infinite\,hurr-tilt_7s_ease-in-out_infinite\] {
+    animation: none !important;
+  }
+}
