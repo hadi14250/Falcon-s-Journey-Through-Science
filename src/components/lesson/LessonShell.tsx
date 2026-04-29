@@ -25,6 +25,13 @@ const TOTAL_HEARTS = 5;
 const CORRECT_HEADLINES = ["Mashallah!", "Brilliant!", "You got it!", "Amazing!", "Excellent!"];
 const WRONG_HEADLINES = ["Not quite", "Almost!", "Try the next one", "Keep going"];
 
+/* Map streak count → audio tier. Mirrors the visual tier in StreakCelebration. */
+const streakTier = (streak: number): 1 | 2 | 3 => {
+  if (streak >= 7) return 3;
+  if (streak >= 5) return 2;
+  return 1;
+};
+
 export interface LessonResult {
   correct: number;
   total: number;
@@ -110,6 +117,7 @@ export default function LessonShell({ exercises, onComplete, onQuit }: LessonShe
           sounds.next();
           if (hitThreshold) {
             // Show streak overlay even on silent advance, then move on.
+            sounds.streak(streakTier(newStreak));
             setCelebration({ show: true, streak: newStreak });
           }
           if (index + 1 >= exercises.length) {
@@ -130,6 +138,8 @@ export default function LessonShell({ exercises, onComplete, onQuit }: LessonShe
         const fb = { show: true, isCorrect: true, message: headline, detail };
         if (hitThreshold) {
           // Defer the feedback sheet — celebration first, then sheet on dismiss.
+          // Streak chime layers on top of the just-played sounds.correct().
+          sounds.streak(streakTier(newStreak));
           setPendingFeedback(fb);
           setCelebration({ show: true, streak: newStreak });
         } else {
@@ -422,10 +432,10 @@ export default function LessonShell({ exercises, onComplete, onQuit }: LessonShe
           <motion.div
             key={index}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: feedback.show ? 0.45 : 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="flex-1 flex flex-col min-h-0"
+            className="flex-1 flex flex-col min-h-0 transition-opacity"
           >
             {current?.type === "learn" && (
               <LearnExercise exercise={current} onContinue={handleLearnContinue} />

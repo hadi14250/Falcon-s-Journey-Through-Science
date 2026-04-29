@@ -79,12 +79,28 @@ export const sounds = {
     // Descending buzz
     tone({ freq: 196, duration: 0.3, type: "sawtooth", volume: 0.12, freqEnd: 130 }, 0);
   },
-  streak() {
-    // Celebratory flourish
-    tone({ freq: 523.25, duration: 0.08, type: "square", volume: 0.1 }, 0);
-    tone({ freq: 659.25, duration: 0.08, type: "square", volume: 0.1 }, 0.06);
-    tone({ freq: 783.99, duration: 0.08, type: "square", volume: 0.1 }, 0.12);
-    tone({ freq: 1046.5, duration: 0.18, type: "square", volume: 0.12 }, 0.18);
+  streak(tier: 1 | 2 | 3 = 1) {
+    // Tier 1 (3-streak): short ascending 4-note flourish.
+    // Tier 2 (5-streak): same arc + an extra higher note, slightly louder.
+    // Tier 3 (7+ streak): full ascent with a triumphant high note + sparkle accents.
+    const v1 = 0.10 + 0.02 * (tier - 1); // 0.10 / 0.12 / 0.14
+    const v2 = 0.12 + 0.03 * (tier - 1); // 0.12 / 0.15 / 0.18
+
+    // Shared ascent (all tiers)
+    tone({ freq: 523.25, duration: 0.08, type: "square", volume: v1 }, 0);
+    tone({ freq: 659.25, duration: 0.08, type: "square", volume: v1 }, 0.06);
+    tone({ freq: 783.99, duration: 0.08, type: "square", volume: v1 }, 0.12);
+    tone({ freq: 1046.5, duration: 0.18, type: "square", volume: v2 }, 0.18);
+
+    if (tier >= 2) {
+      // Extra high cap note — adds urgency.
+      tone({ freq: 1318.5, duration: 0.20, type: "square", volume: v2 }, 0.30);
+    }
+    if (tier >= 3) {
+      // Sparkle: a quick chimes pair on top to feel triumphant.
+      tone({ freq: 1567.98, duration: 0.10, type: "triangle", volume: v2 }, 0.42);
+      tone({ freq: 2093.0, duration: 0.18, type: "triangle", volume: v2 }, 0.50);
+    }
   },
   tap() {
     // Soft UI click

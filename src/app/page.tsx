@@ -6,7 +6,6 @@ import { useRouteTransition } from "@/components/ui/RouteTransition";
 import Companion from "@/components/mascot/Companion";
 import LessonButton from "@/components/lesson/LessonButton";
 import NamePrompt from "@/components/onboarding/NamePrompt";
-import WelcomeSplash from "@/components/WelcomeSplash";
 import { useGameStore } from "@/lib/store";
 import { companions } from "@/data/companions";
 import { SaduBand, KhaleejiStar } from "@/components/ui/UaeAccent";
@@ -22,16 +21,11 @@ import { SaduBand, KhaleejiStar } from "@/components/ui/UaeAccent";
 export default function LandingPage() {
   const { navigate } = useRouteTransition();
   const [showNamePrompt, setShowNamePrompt] = useState(false);
-  const [showSplash, setShowSplash] = useState(false);
   const [mounted, setMounted] = useState(false);
   const { student } = useGameStore();
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== "undefined" && !sessionStorage.getItem("welcome-shown")) {
-      setShowSplash(true);
-      sessionStorage.setItem("welcome-shown", "1");
-    }
   }, []);
 
   const handleStart = () => {
@@ -196,10 +190,6 @@ export default function LandingPage() {
         )}
       </AnimatePresence>
 
-      {/* Welcome splash — first visit only */}
-      <AnimatePresence>
-        {showSplash && <WelcomeSplash onDone={() => setShowSplash(false)} />}
-      </AnimatePresence>
     </div>
   );
 }

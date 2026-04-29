@@ -131,7 +131,25 @@ Hit 3, 5, 7, or 10 in a row inside a level and a streak celebration overlay flas
 
 Two slots, **human** and **companion**, each can wear one item at a time. The slots are independent, so you can dress both at once. Items range from 10 to 25 dirhams. The newest item is **Cool Glasses** (25 dirhams), available in both human and companion variants.
 
-### 6. Rewards Room
+### 6. View any character in 3D
+
+<p align="center">
+  <img src="docs/screenshots/24-3d-viewer.gif" alt="3D character viewer. drag to rotate, pinch or scroll to zoom" width="280" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/25-3d-rashid-glasses.png" alt="Rashid in cool glasses, in 3D" width="200" />
+  <img src="docs/screenshots/26-3d-mira-scarf.png" alt="Mira wearing the UAE scarf, in 3D" width="200" />
+  <img src="docs/screenshots/27-3d-hadi-flag.png" alt="Hadi holding the UAE flag, in 3D" width="200" />
+</p>
+
+Tap any character on the **Profile** hero or the **Souq** stage and the lightbox opens with a fully rotatable 3D model of that character, in whatever outfit they're currently wearing. Every avatar × every outfit combination has its own GLB (50 models in total: 10 explorers × 5 looks each). The viewer is `@react-three/fiber` + `drei` driven, lazy loaded so the Three.js bundle only ships when a player actually opens a 3D view.
+
+Drag rotates on Y, pinch or scroll zooms (clamped so the model can't get lost). After 4 seconds of inactivity the camera auto snaps back to the front facing default; a small reset puck pinned to the bottom right does the same on demand. When the user isn't dragging, the model gently sways ±6° on Y so it never feels frozen. A spinning gold "3D" pill in the corner of the avatar card flags which characters have the 3D view (so it's discoverable without copy clutter); the card also tilts on hover (perspective + rotateY) on desktop so the 3D nature is implicit.
+
+GLBs are Draco + WebP compressed and served from `/public/models/` (avg ~1MB each). The drei loader auto wires Draco / Meshopt decoders, no manual setup. Every character variant is normalized to the same scale via a runtime bounding box auto fit, so the model always fills the viewer regardless of how Meshy exported it.
+
+### 7. Rewards Room
 
 <p align="center">
   <img src="docs/screenshots/21_rewards_desktop.png" alt="Rewards Room desktop" width="700" />
@@ -147,7 +165,7 @@ On desktop the page reflows into a real layout: Journey Progress and Treasury si
 
 Three.js scene rendered with `@react-three/fiber` + `drei` + `postprocessing`: bloom, ACES Filmic tone mapping, three Hope Probes orbiting (one polar), Saturn + Earth + Mars drifting in the distance, a tumbling asteroid belt, shooting stars. Click the trophy to zoom in. Locked content uses **hold to peek** on touch and **hover to peek** on mouse, so the player can tease what they're working toward without leaving the page. The scene is lazy mounted on scroll into view and pauses its render loop when offscreen or in a backgrounded tab so it does not eat GPU when the player is not looking at it.
 
-### 7. Profile + Settings
+### 8. Profile + Settings
 
 <p align="center">
   <img src="docs/screenshots/20_profile_desktop.png" alt="Profile desktop" width="700" />
@@ -160,7 +178,7 @@ Three.js scene rendered with `@react-three/fiber` + `drei` + `postprocessing`: b
 
 Profile shows name, avatar, companion, equipped items, owned items, and total XP. On desktop the page reflows into a two column layout with the hero (avatar + companion + name) anchored on the left and the progress, name, and wardrobe cards stacked on the right. Tapping the hero scrolls down to the Choose Your Explorer section. The Explorer picker fits ten avatars as a 5×2 grid; the Companion picker fits eight as 5+3 with the orphan trio centered. Wardrobe items show three states: locked (grayscale with a padlock corner), owned, and equipped (green checkmark). Settings exposes sound on/off, reduced motion on/off, Arabic numerals, and a Replay Tour control. All persist in the same Zustand store as the game state.
 
-### 8. Loader
+### 9. Loader
 
 <p align="center">
   <img src="docs/screenshots/18-loader.png" alt="Khaleeji seal loader" width="280" />

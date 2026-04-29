@@ -44,11 +44,19 @@ export default function NamePrompt({ onComplete, onClose }: NamePromptProps) {
 
   const stepIndex = STEPS.indexOf(step);
 
+  /* Name length policy — applied identically here and on the Profile
+     rename. 3 minimum so we don't end up greeting players as "d", 20
+     maximum so the name fits across all the cramped UI surfaces (souq
+     stage label, lesson chrome, lightbox header). */
+  const NAME_MIN = 3;
+  const NAME_MAX = 20;
+  const trimmedName = name.trim();
+  const nameValid = trimmedName.length >= NAME_MIN && trimmedName.length <= NAME_MAX;
+
   const handleFinish = () => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
+    if (!nameValid) return;
     setCurrentSubject(selectedSubject);
-    setStudent(trimmed, selectedAvatar, selectedCompanion);
+    setStudent(trimmedName, selectedAvatar, selectedCompanion);
     onComplete();
   };
 
@@ -279,13 +287,17 @@ export default function NamePrompt({ onComplete, onClose }: NamePromptProps) {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && name.trim() && setStep("avatar")}
+                      onKeyDown={(e) => e.key === "Enter" && nameValid && setStep("avatar")}
                       placeholder="Type your name…"
-                      maxLength={30}
+                      maxLength={NAME_MAX}
                       autoFocus
                       className="mt-3 w-full px-4 py-3 rounded-xl border-2 border-[#E5D9B8] bg-[#FFFCEF] font-body text-lg text-[#1A1A2E] placeholder:text-[#1A1A2E]/40 focus:border-[#D4AF37] focus:outline-none transition-colors text-center"
                       style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.6)" }}
                     />
+                    <p className="mt-2 text-[11px] font-body text-[#1A1A2E]/55 text-center leading-tight">
+                      Between {NAME_MIN} and {NAME_MAX} letters
+                      <span className="opacity-60" dir="rtl"> · من {NAME_MIN} إلى {NAME_MAX} أحرف</span>
+                    </p>
                   </div>
                 </motion.div>
               );
@@ -484,7 +496,7 @@ export default function NamePrompt({ onComplete, onClose }: NamePromptProps) {
               size="lg"
               fullWidth
               onClick={() => setStep("avatar")}
-              disabled={!name.trim()}
+              disabled={!nameValid}
             >
               <span>Next</span>
               <span className="opacity-80 ml-2" dir="rtl">التالي</span>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouteTransition } from "@/components/ui/RouteTransition";
-import { useGameStore, useCurrentSubjectProgress } from "@/lib/store";
+import { useGameStore } from "@/lib/store";
 import { humanSrcFor } from "@/data/shop";
 import { badges, getBadgesForSubject, findBadgeById } from "@/data/badges";
 import { getLevelsForSubject } from "@/data/levels";
@@ -218,8 +218,13 @@ function BadgeTile({
 
 export default function RewardsPage() {
   const { navigate } = useRouteTransition();
-  const { student, dirhams, dirhamsEarnedAllTime, equipped, currentSubject, setCurrentSubject, subjectProgress, unlockEverything } = useGameStore();
-  const { unlockedBadges, totalXP, completedLevels, currentLevel } = useCurrentSubjectProgress();
+  const { student, dirhams, dirhamsEarnedAllTime, equipped, currentSubject, subjectProgress, unlockEverything } = useGameStore();
+  // Local tab state — the badge view tabs filter what's shown on this page only.
+  // The real "active subject" lives in the global store and is changed only
+  // from Settings. Switching tabs here must not swap the world's map biome.
+  const [tabSubject, setTabSubject] = useState<SubjectId>(currentSubject);
+  const tabProgress = subjectProgress[tabSubject];
+  const { unlockedBadges, totalXP, completedLevels, currentLevel } = tabProgress;
   const [selectedBadge, setSelectedBadge] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   // "Press and hold to preview" — toggles whether the lock overlay is hidden
@@ -358,8 +363,8 @@ export default function RewardsPage() {
 
   const selectedBadgeData = selectedBadge ? findBadgeById(selectedBadge) : null;
 
-  // Active-subject badges (filters the grid below)
-  const subjectBadges = getBadgesForSubject(currentSubject);
+  // Tab-selected subject badges (filters the grid below).
+  const subjectBadges = getBadgesForSubject(tabSubject);
   const subjectBadgeCount = subjectBadges.filter((b) =>
     unlockedBadges.includes(b.id) ||
     // back-compat with legacy "badge-level-N" ids on the space subject
@@ -404,9 +409,11 @@ export default function RewardsPage() {
   const allSubjectsComplete =
     totalBadgesPossible > 0 && totalBadgesAcrossAll === totalBadgesPossible;
 
-  // Helper for the per-subject tabs
+  // Helper for the per-subject tabs.
+  // Local-only — does NOT mutate the world's active subject. Switching the
+  // active map biome lives on the Settings screen.
   const handleSubjectTab = (id: SubjectId) => {
-    if (id !== currentSubject) setCurrentSubject(id);
+    if (id !== tabSubject) setTabSubject(id);
   };
 
   if (!mounted) return null;
@@ -660,7 +667,7 @@ export default function RewardsPage() {
           className="mb-4 flex gap-2 overflow-x-auto overflow-y-visible -mx-1 px-1 pb-1.5 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
         >
           {subjects.map((s) => {
-            const isActive = currentSubject === s.id;
+            const isActive = tabSubject === s.id;
             const disabled = !s.enabled;
             return (
               <button
@@ -690,10 +697,10 @@ export default function RewardsPage() {
           })}
         </div>
 
-        {/* === Badges grid (filtered to current subject) === */}
+        {/* === Badges grid (filtered to the selected tab) === */}
         <SectionCard
-          title={`${subjectsById[currentSubject]?.name ?? ""} Badges`}
-          titleAr={`شارات ${subjectsById[currentSubject]?.nameAr ?? ""}`}
+          title={`${subjectsById[tabSubject]?.name ?? ""} Badges`}
+          titleAr={`شارات ${subjectsById[tabSubject]?.nameAr ?? ""}`}
           delay={0.15}
         >
           {subjectBadges.length === 0 ? (

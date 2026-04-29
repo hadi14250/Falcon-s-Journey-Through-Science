@@ -3,7 +3,6 @@ import { Reem_Kufi, Cairo } from "next/font/google";
 import "./globals.css";
 import SettingsProvider from "@/components/SettingsProvider";
 import RouteTransitionProvider from "@/components/ui/RouteTransition";
-import InitialPaintLoader from "@/components/ui/InitialPaintLoader";
 
 const reemKufi = Reem_Kufi({
   variable: "--font-reem-kufi",
@@ -49,10 +48,6 @@ export default function RootLayout({
       className={`${reemKufi.variable} ${cairo.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-body bg-sand-beige text-desert-night">
-        {/* Server-rendered loader that paints in the initial HTML so a
-            hard refresh never shows a blank screen while client JS is
-            hydrating. Removes itself on mount. */}
-        <InitialPaintLoader />
         <SettingsProvider>
           <RouteTransitionProvider>{children}</RouteTransitionProvider>
         </SettingsProvider>

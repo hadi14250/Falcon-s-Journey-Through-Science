@@ -66,6 +66,9 @@ export interface GameState {
   /* True once the player has seen (or skipped) the first-visit map tour.
      Reset to false from the Profile page to replay it. */
   tourComplete: boolean;
+  /* True once the player has interacted with any item in the Souq. Used to
+     hide the "Tap an item above to try it on" first-time hint. */
+  souqHintDismissed: boolean;
   setStudent: (name: string, avatarId: number, companionId?: string) => void;
   setCurrentSubject: (subjectId: SubjectId) => void;
   completeLevel: (
@@ -89,6 +92,7 @@ export interface GameState {
   setReducedMotion: (enabled: boolean) => void;
   setArabicNumerals: (enabled: boolean) => void;
   setTourComplete: (complete: boolean) => void;
+  dismissSouqHint: () => void;
   resetProgress: () => void;
 }
 
@@ -108,6 +112,7 @@ const initialState = {
   reducedMotion: false,
   arabicNumerals: false,
   tourComplete: false,
+  souqHintDismissed: false,
 };
 
 export const useGameStore = create<GameState>()(
@@ -244,6 +249,7 @@ export const useGameStore = create<GameState>()(
       setReducedMotion: (enabled) => set({ reducedMotion: enabled }),
       setArabicNumerals: (enabled) => set({ arabicNumerals: enabled }),
       setTourComplete: (complete) => set({ tourComplete: complete }),
+      dismissSouqHint: () => set({ souqHintDismissed: true }),
       resetProgress: () =>
         set((state) => ({
           ...initialState,
@@ -255,7 +261,7 @@ export const useGameStore = create<GameState>()(
     }),
     {
       name: "falcons-journey-storage",
-      version: 5,
+      version: 6,
       /* Migration history:
          - v0/v1 → v2: split `equippedItem` into `equipped.human/companion`
                        and force companionId to "camel".
@@ -263,7 +269,9 @@ export const useGameStore = create<GameState>()(
                     top-level progress fields move into `subjectProgress.space`.
          - v3 → v4: backfill `bestHearts` + `perfectClears` on every subject.
          - v4 → v5: add `tourComplete` (default false so existing players
-                    see the spotlight tour once on their next map visit). */
+                    see the spotlight tour once on their next map visit).
+         - v5 → v6: add `souqHintDismissed` (default false so existing players
+                    see the Souq onboarding hint once). */
       migrate: (persisted: unknown, version: number) => {
         if (!persisted || typeof persisted !== "object") return persisted;
         const s = persisted as Record<string, unknown>;
@@ -327,6 +335,12 @@ export const useGameStore = create<GameState>()(
         // see the spotlight tour once on their next map visit.
         if (version < 5) {
           if (typeof s.tourComplete !== "boolean") s.tourComplete = false;
+        }
+
+        // v5 → v6: add `souqHintDismissed`. Default false so existing players
+        // see the Souq onboarding hint once on their next visit.
+        if (version < 6) {
+          if (typeof s.souqHintDismissed !== "boolean") s.souqHintDismissed = false;
         }
 
         return s;

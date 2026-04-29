@@ -11,8 +11,12 @@ import { shopItems, humanSrcFor, companionSrcFor } from "@/data/shop";
 import CompanionImage from "@/components/mascot/CompanionImage";
 import LessonButton from "@/components/lesson/LessonButton";
 import { SaduBand, KhaleejiStar } from "@/components/ui/UaeAccent";
+import CoinPill from "@/components/ui/CoinPill";
 import SaduPattern from "@/components/patterns/SaduPattern";
 import { ArrowLeft, Check, ChevronDown, Lock } from "lucide-react";
+import AvatarLightbox from "@/components/profile/AvatarLightbox";
+import Hint3DOverlay from "@/components/profile/Hint3DOverlay";
+import { getAvatarModel3D } from "@/components/profile/avatarModels3D";
 
 function SavedToast({ show }: { show: boolean }) {
   return (
@@ -129,6 +133,8 @@ export default function ProfilePage() {
   const [selectedCompanion, setSelectedCompanion] = useState(student.companionId);
   const [mounted, setMounted] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
+  /* Big-view modal — opens on tap of either hero image. null = closed. */
+  const [lightbox, setLightbox] = useState<"human" | "companion" | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -154,8 +160,20 @@ export default function ProfilePage() {
     flash();
   };
 
+  /* Same name policy as onboarding — see NamePrompt.tsx for the why. */
+  const NAME_MIN = 3;
+  const NAME_MAX = 20;
+  const trimmedName = name.trim();
+  const nameValid = trimmedName.length >= NAME_MIN && trimmedName.length <= NAME_MAX;
+
   const saveName = () => {
-    setStudent(name, selectedAvatar, selectedCompanion);
+    if (!nameValid) {
+      // Revert to the stored name so the field doesn't visually accept
+      // an invalid value the store rejected.
+      setName(student.name);
+      return;
+    }
+    setStudent(trimmedName, selectedAvatar, selectedCompanion);
     flash();
   };
 
@@ -209,7 +227,24 @@ export default function ProfilePage() {
       <div className="flex flex-row lg:flex-col items-end lg:items-center justify-center gap-3 lg:gap-3 order-1 lg:order-none">
         <motion.div
           key={`hero-h-${selectedAvatar}-${equipped.human}`}
-          className="shrink-0 w-[110px] h-[110px] md:w-[130px] md:h-[130px] lg:w-[260px] lg:h-[260px] rounded-3xl overflow-hidden border-[3px] border-[#1A1A2E] bg-gradient-to-b from-[#FFF7DC] to-[#FFE9A8] flex items-center justify-center p-2"
+          // role=button + tabIndex make this a clickable sub-target
+          // INSIDE the larger tap-to-change tile. stopPropagation prevents
+          // the tile's tap-to-change from also firing on the same tap.
+          role="button"
+          tabIndex={0}
+          aria-label="View explorer in big mode"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightbox("human");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              setLightbox("human");
+            }
+          }}
+          className="group relative shrink-0 w-[110px] h-[110px] md:w-[130px] md:h-[130px] lg:w-[260px] lg:h-[260px] rounded-3xl overflow-hidden border-[3px] border-[#1A1A2E] bg-gradient-to-b from-[#FFF7DC] to-[#FFE9A8] flex items-center justify-center p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] transition-transform duration-300 lg:hover:scale-[1.04] lg:hover:[transform:perspective(800px)_rotateY(-6deg)_scale(1.04)]"
           style={{ boxShadow: "0 4px 0 #C9B58A, inset 0 1px 0 rgba(255,255,255,0.55)" }}
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -222,6 +257,18 @@ export default function ProfilePage() {
             className="w-full h-full object-contain"
             draggable={false}
           />
+          {/* "3D" affordance badge — Box-icon pill in the top-right when
+              the current avatar+item combo has a registered 3D model.
+              Re-mount via the URL key for a fresh entry pulse on change. */}
+          {(() => {
+            const url = getAvatarModel3D(selectedAvatar, equipped.human);
+            if (!url) return null;
+            /* "Tap for 3D" caption overlaid in the top-left of the card.
+               Fades out on desktop hover when the card animates. The
+               Profile hero is tighter than the Souq stage, so we knock
+               the text down a notch here. */
+            return <Hint3DOverlay textSizeClass="text-[7px] lg:text-[10px]" />;
+          })()}
         </motion.div>
 
         <div
@@ -233,7 +280,21 @@ export default function ProfilePage() {
 
         <motion.div
           key={`hero-c-${selectedCompanion}-${equipped.companion}`}
-          className="shrink-0 w-[110px] h-[110px] md:w-[130px] md:h-[130px] lg:w-[260px] lg:h-[260px] rounded-3xl overflow-hidden border-[3px] border-[#1A1A2E] bg-gradient-to-b from-[#FFF7DC] to-[#FFE9A8] flex items-center justify-center p-2"
+          role="button"
+          tabIndex={0}
+          aria-label="View companion in big mode"
+          onClick={(e) => {
+            e.stopPropagation();
+            setLightbox("companion");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              e.stopPropagation();
+              setLightbox("companion");
+            }
+          }}
+          className="group relative shrink-0 w-[110px] h-[110px] md:w-[130px] md:h-[130px] lg:w-[260px] lg:h-[260px] rounded-3xl overflow-hidden border-[3px] border-[#1A1A2E] bg-gradient-to-b from-[#FFF7DC] to-[#FFE9A8] flex items-center justify-center p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] transition-transform duration-300 lg:hover:scale-[1.04] lg:hover:[transform:perspective(800px)_rotateY(6deg)_scale(1.04)]"
           style={{ boxShadow: "0 4px 0 #C9B58A, inset 0 1px 0 rgba(255,255,255,0.55)" }}
           initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -338,12 +399,12 @@ export default function ProfilePage() {
         onBlur={saveName}
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         placeholder="Type your name..."
-        maxLength={30}
+        maxLength={NAME_MAX}
         className="w-full px-4 py-3 rounded-xl border-2 border-[#1A1A2E] bg-white font-body text-base text-[#1A1A2E] focus:border-[var(--color-duo-green-dark)] outline-none transition-colors"
         style={{ boxShadow: "0 3px 0 #C9B58A, inset 0 1px 0 rgba(255,255,255,0.55)" }}
       />
       <p className="text-[11px] text-[#1A1A2E]/40 mt-1.5 font-body text-center">
-        Press Enter or tap away to save
+        Between {NAME_MIN} and {NAME_MAX} letters · Press Enter to save
       </p>
     </SectionCard>
   );
@@ -368,19 +429,10 @@ export default function ProfilePage() {
                 : `${shopItems.length - ownedItems.length} more to collect.`}
           </p>
         </div>
-        {/* Dirham balance pill — explicit "coins" label so the number
-            isn't ambiguous. Uses dirham coin icon + count + label. */}
-        <div
-          className="shrink-0 flex items-center gap-1.5 bg-white border-2 border-[#1A1A2E] rounded-full px-3 py-1.5"
-          style={{ boxShadow: "0 2px 0 #C9B58A" }}
-          aria-label={`${dirhams} dirhams (spendable currency)`}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/uae-dirham.webp" alt="" width={18} height={18} />
-          <span className="font-heading font-bold text-sm text-[#1A1A2E]">{dirhams}</span>
-          <span className="font-body text-[11px] uppercase tracking-wider text-[#1A1A2E]/60 -ml-0.5">
-            coins
-          </span>
+        {/* Dirham balance — shared CoinPill with the "coins" label so the
+            number isn't ambiguous. Animates on change. */}
+        <div className="shrink-0">
+          <CoinPill value={dirhams} size="md" label="coins" />
         </div>
       </div>
 
@@ -643,9 +695,39 @@ export default function ProfilePage() {
     </div>
   );
 
+  // Resolve the active avatar + companion for the big-view modal so the
+  // lightbox always shows the currently-selected option (matching the hero
+  // tiles), including any equipped item variant.
+  const activeAvatar = avatars.find((a) => a.id === selectedAvatar);
+  const activeCompanion = companions.find((c) => c.id === selectedCompanion);
+
   return (
     <div className="relative min-h-dvh bg-[var(--color-lesson-bg)]">
       <SavedToast show={showSaved} />
+
+      <AnimatePresence>
+        {lightbox === "human" && activeAvatar && (
+          <AvatarLightbox
+            key="lightbox-human"
+            src={humanSrcFor(selectedAvatar, equipped.human)}
+            name={activeAvatar.name}
+            nameAr={activeAvatar.nameAr}
+            onClose={() => setLightbox(null)}
+            // Look up the (avatar, item) pair in the 3D registry.
+            // Hit → render the 3D viewer. Miss → falls back to the static img.
+            model3DUrl={getAvatarModel3D(selectedAvatar, equipped.human)}
+          />
+        )}
+        {lightbox === "companion" && activeCompanion && (
+          <AvatarLightbox
+            key="lightbox-companion"
+            src={companionSrcFor(selectedCompanion, equipped.companion)}
+            name={activeCompanion.name}
+            nameAr={activeCompanion.nameAr}
+            onClose={() => setLightbox(null)}
+          />
+        )}
+      </AnimatePresence>
 
       <SaduPattern opacity={0.05} className="fixed inset-0 pointer-events-none z-[1]" />
 
